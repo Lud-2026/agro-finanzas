@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AGRO FINANZAS</title>
+<meta name="theme-color" content="#375A3B">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+<div class="stage">
+  <svg class="horizon" viewBox="0 0 400 240" preserveAspectRatio="none">
+    <path d="M0,120 C60,90 110,140 170,110 C230,80 260,130 400,95 L400,240 L0,240 Z" fill="#DCE6D3"/>
+    <path d="M0,160 C70,130 140,175 210,145 C270,120 320,165 400,140 L400,240 L0,240 Z" fill="#375A3B" opacity="0.85"/>
+  </svg>
+
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="screens">
+
+      <!-- ===================== INICIO ===================== -->
+      <section class="screen active" id="screen-inicio">
+        <div class="screen-head">
+          <p class="eyebrow">Buenas tardes</p>
+          <h1 class="title-lg">Tus proyectos</h1>
+        </div>
+        <div class="screen-body">
+          <div class="balance-card">
+            <p class="label">Balance total</p>
+            <p class="amount num" id="home-balance">$0</p>
+            <div class="meta">
+              <span>Ingresos<b class="num" id="home-ingresos">$0</b></span>
+              <span>Egresos<b class="num" id="home-egresos">$0</b></span>
+              <span>Proyectos<b id="home-count">0</b></span>
+            </div>
+          </div>
+
+          <div class="section-label">Mis proyectos</div>
+          <div id="project-list"></div>
+
+          <button class="btn-add" onclick="goToNuevoProyecto()">+ Crear nuevo proyecto</button>
+        </div>
+        <div class="tabbar">
+          <button class="tab active" data-tab="inicio" onclick="showTab('inicio')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/></svg>
+            <span class="tlabel">Inicio</span>
+          </button>
+          <button class="tab" data-tab="resumen" onclick="showTab('resumen')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V10"/><path d="M11 19V5"/><path d="M18 19v-7"/></svg>
+            <span class="tlabel">Resumen</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ===================== FORMULARIO PROYECTO (nuevo / editar) ===================== -->
+      <section class="screen" id="screen-proyecto-form">
+        <div class="screen-head with-back">
+          <button class="back-btn" onclick="cancelarFormProyecto()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 5l-7 7 7 7"/></svg>
+          </button>
+          <h2 class="title-md" id="pf-titulo">Nuevo proyecto</h2>
+        </div>
+        <div class="screen-body">
+          <div class="field">
+            <label for="pf-nombre">Nombre del proyecto</label>
+            <input type="text" id="pf-nombre" placeholder="Ej. Cosecha de café 2027">
+          </div>
+          <div class="field">
+            <label>Tipo de proyecto</label>
+            <div class="type-grid" id="pf-tipos"></div>
+          </div>
+          <div class="field">
+            <label for="pf-actividad">Actividad</label>
+            <select id="pf-actividad"></select>
+          </div>
+          <div class="field">
+            <label>Estado del proyecto</label>
+            <div class="toggle-row" id="pf-estado">
+              <div class="toggle-opt estado" data-estado="En curso" onclick="setEstadoForm('En curso')">En curso</div>
+              <div class="toggle-opt estado" data-estado="Finalizado" onclick="setEstadoForm('Finalizado')">Finalizado</div>
+            </div>
+          </div>
+          <button class="btn btn-primary" id="pf-guardar" onclick="guardarProyecto()">Crear proyecto</button>
+        </div>
+      </section>
+
+      <!-- ===================== DETALLE PROYECTO ===================== -->
+      <section class="screen" id="screen-detalle">
+        <div class="screen-head with-back">
+          <button class="back-btn" onclick="showTab('inicio')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 5l-7 7 7 7"/></svg>
+          </button>
+          <div class="headings">
+            <h2 class="title-md" id="det-nombre">—</h2>
+            <p class="subtitle" id="det-tipo">—</p>
+            <span class="badge" id="det-badge"></span>
+          </div>
+          <button class="kebab-btn" onclick="abrirMenuProyecto()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="12" cy="19" r="1.4"/></svg>
+          </button>
+        </div>
+        <div class="screen-body">
+          <div class="totals-row">
+            <div class="total-chip pos"><p class="l">Ingresos</p><p class="v num" id="det-ingresos">$0</p></div>
+            <div class="total-chip neg"><p class="l">Egresos</p><p class="v num" id="det-egresos">$0</p></div>
+            <div class="total-chip"><p class="l">Saldo neto</p><p class="v num" id="det-saldo">$0</p></div>
+          </div>
+
+          <div class="mini-grid">
+            <div class="mini-chip"><p class="l">Margen neto</p><p class="v" id="det-margen">—</p></div>
+            <div class="mini-chip"><p class="l">Movimientos</p><p class="v" id="det-nmov">0</p></div>
+            <div class="mini-chip"><p class="l">Ingreso promedio</p><p class="v num" id="det-prom-in">$0</p></div>
+            <div class="mini-chip"><p class="l">Egreso promedio</p><p class="v num" id="det-prom-eg">$0</p></div>
+          </div>
+
+          <div id="det-cat-wrap">
+            <div class="section-label">Principales gastos</div>
+            <div id="det-categorias"></div>
+          </div>
+
+          <div class="export-row">
+            <button class="btn btn-outline" onclick="exportarCSVProyecto()">Exportar CSV</button>
+            <button class="btn btn-outline" onclick="exportarPDFProyecto()">Exportar PDF</button>
+          </div>
+
+          <div class="section-label">Movimientos</div>
+          <div id="det-movimientos"></div>
+
+          <button class="btn-add" onclick="goToRegistrar()">+ Registrar movimiento</button>
+        </div>
+      </section>
+
+      <!-- ===================== FORMULARIO MOVIMIENTO (nuevo / editar) ===================== -->
+      <section class="screen" id="screen-movimiento-form">
+        <div class="screen-head with-back">
+          <button class="back-btn" onclick="volverADetalle()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 5l-7 7 7 7"/></svg>
+          </button>
+          <h2 class="title-md" id="mf-titulo">Registrar movimiento</h2>
+        </div>
+        <div class="screen-body">
+          <div class="field">
+            <label>Tipo de movimiento</label>
+            <div class="toggle-row">
+              <div class="toggle-opt ingreso selected" id="mov-opt-ingreso" onclick="setMovTipo('ingreso')">Ingreso</div>
+              <div class="toggle-opt egreso" id="mov-opt-egreso" onclick="setMovTipo('egreso')">Egreso</div>
+            </div>
+          </div>
+          <div class="field">
+            <label for="mov-categoria">Categoría</label>
+            <select id="mov-categoria" onchange="onCategoriaChange()"></select>
+          </div>
+          <div class="field" id="mov-categoria-nueva-wrap" style="display:none">
+            <label for="mov-categoria-nueva">Nombre de la nueva categoría</label>
+            <input type="text" id="mov-categoria-nueva" placeholder="Ej. Alojamiento">
+          </div>
+          <div class="field">
+            <label for="mov-concepto">Concepto</label>
+            <input type="text" id="mov-concepto" placeholder="Ej. Venta de café pergamino">
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="mov-cantidad">Cantidad (opcional)</label>
+              <input type="number" id="mov-cantidad" placeholder="0" min="0" step="0.01" oninput="actualizarValorUnidad()">
+            </div>
+            <div class="field">
+              <label for="mov-unidad">Unidad</label>
+              <select id="mov-unidad">
+                <option value="">—</option>
+                <option value="kg">kg</option>
+                <option value="bultos">bultos</option>
+                <option value="litros">litros</option>
+                <option value="unidades">unidades</option>
+                <option value="jornales">jornales</option>
+                <option value="hectáreas">hectáreas</option>
+                <option value="arrobas">arrobas</option>
+                <option value="toneladas">toneladas</option>
+                <option value="otro">otro</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="mov-monto">Monto (COP)</label>
+            <input type="number" id="mov-monto" placeholder="0" min="0" step="1000" oninput="actualizarValorUnidad()">
+          </div>
+          <p class="hint" id="mov-valor-unidad"></p>
+          <div class="field" style="margin-top:12px">
+            <label for="mov-fecha">Fecha</label>
+            <input type="date" id="mov-fecha">
+          </div>
+          <button class="btn btn-primary" id="mf-guardar" onclick="guardarMovimiento()">Guardar movimiento</button>
+        </div>
+      </section>
+
+      <!-- ===================== RESUMEN GENERAL / DASHBOARD ===================== -->
+      <section class="screen" id="screen-resumen">
+        <div class="screen-head">
+          <p class="eyebrow">Consolidado</p>
+          <h1 class="title-lg">Resumen general</h1>
+        </div>
+        <div class="screen-body">
+          <div class="filter-row" id="dash-filtros"></div>
+          <div class="custom-range" id="dash-custom" style="display:none">
+            <input type="date" id="dash-desde">
+            <input type="date" id="dash-hasta">
+            <button class="btn btn-outline" style="padding:9px 12px; font-size:12.5px;" onclick="aplicarPersonalizado()">Aplicar</button>
+          </div>
+
+          <div class="dash-grid">
+            <div class="total-chip pos"><p class="l">Ingresos</p><p class="v num" id="res-ingresos">$0</p></div>
+            <div class="total-chip neg"><p class="l">Egresos</p><p class="v num" id="res-egresos">$0</p></div>
+            <div class="total-chip"><p class="l">Saldo</p><p class="v num" id="res-saldo">$0</p></div>
+            <div class="total-chip"><p class="l">Margen neto</p><p class="v" id="res-margen">—</p></div>
+          </div>
+
+          <div id="res-proyeccion"></div>
+
+          <div class="section-label">Ingresos vs. egresos por mes</div>
+          <div id="res-meses"></div>
+
+          <div class="section-label">Egresos por categoría</div>
+          <div id="res-categorias"></div>
+
+          <div class="section-label">Comparación entre proyectos</div>
+          <div id="res-bars"></div>
+
+          <div class="export-row">
+            <button class="btn btn-outline" onclick="exportarCSVDashboard()">Exportar CSV</button>
+            <button class="btn btn-outline" onclick="exportarPDFDashboard()">Exportar PDF</button>
+          </div>
+        </div>
+        <div class="tabbar">
+          <button class="tab" data-tab="inicio" onclick="showTab('inicio')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/></svg>
+            <span class="tlabel">Inicio</span>
+          </button>
+          <button class="tab active" data-tab="resumen" onclick="showTab('resumen')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V10"/><path d="M11 19V5"/><path d="M18 19v-7"/></svg>
+            <span class="tlabel">Resumen</span>
+          </button>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- overlays -->
+    <div class="overlay" id="sheet-overlay">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <h3 id="sheet-title"></h3>
+        <div id="sheet-actions"></div>
+        <button class="sheet-cancel" onclick="closeSheet()">Cancelar</button>
+      </div>
+    </div>
+
+    <div class="confirm-overlay" id="confirm-overlay">
+      <div class="confirm-box">
+        <h3 id="confirm-title"></h3>
+        <p id="confirm-message"></p>
+        <div class="confirm-actions">
+          <button class="btn" style="background:var(--surface-soft); border:1px solid var(--line); color:var(--ink);" onclick="closeConfirm()">Cancelar</button>
+          <button class="btn btn-danger" id="confirm-accept">Eliminar</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
